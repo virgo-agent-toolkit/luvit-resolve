@@ -35,3 +35,32 @@ test('test resolve tape', nil, function(t)
   t:equal(module.is_builtin, false, 'tape is not a builtin')
   t:finish()
 end)
+
+local test_simple = function(t, module)
+  t:not_nil(module, 'module is not found')
+  t:equal(module.main, path.normalize(path.join(__dirname, './fixtures/simple.lua')), 'resolve_package resolves to wrong main')
+  t:is_nil(module.package, 'there is no package.lua for the package so module.package should be nil')
+  t:equal(module.is_stdlib, false, 'the package is not a stdlib')
+  t:equal(module.is_builtin, false, 'the package is not a builtin')
+  t:finish()
+end
+
+test('test simple.lua - relpath, without extension', nil, function(t)
+  local module = resolve.resolve_package('./fixtures/simple', __dirname)
+  test_simple(t, module)
+end)
+
+test('test simple.lua - relpath, with extension', nil, function(t)
+  local module = resolve.resolve_package('./fixtures/simple.lua', __dirname)
+  test_simple(t, module)
+end)
+
+test('test simple.lua - abspath, without extension', nil, function(t)
+  local module = resolve.resolve_package(path.join(__dirname, './fixtures/simple'), __dirname)
+  test_simple(t, module)
+end)
+
+test('test simple.lua - abspath, with extension', nil, function(t)
+  local module = resolve.resolve_package(path.join(__dirname, './fixtures/simple.lua'), __dirname)
+  test_simple(t, module)
+end)

@@ -66,7 +66,7 @@ return function(filepath, dirname)
   if string.sub(filepath, 1, string.len(path.root)) == path.root then
     absolute_path = path.normalize(filepath)
   elseif string.sub(filepath, 1,1) == '.' then
-    absolute_path = path.join(dirname, filepath)
+    absolute_path = path.normalize(path.join(dirname, filepath))
   end
 
   if absolute_path == nil then
