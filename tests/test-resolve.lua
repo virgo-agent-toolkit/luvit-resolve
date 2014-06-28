@@ -1,0 +1,37 @@
+local path = require('path')
+local string = require('string')
+local test = require('tape')('test-resolve')
+local resolve = require('..')
+
+test('test resolve builtin: http_parser', nil, function(t)
+  local module = resolve.resolve_package('http_parser', __dirname)
+
+  t:not_nil(module, 'module is not found')
+  t:is_nil(module.init_path, 'http_parser is a builtin so init_path should be nil')
+  t:is_nil(module.package, 'there is not a package.lua for http_parser package so module.package should be nil')
+  t:equal(module.is_stdlib, false, 'http_parser is not a stdlib')
+  t:equal(module.is_builtin, true, 'http_parser is indeed a builtin')
+  t:finish()
+end)
+
+test('test resolve stdlib: fs', nil, function(t)
+  local module = resolve.resolve_package('fs', __dirname)
+
+  t:not_nil(module, 'module is not found')
+  t:not_nil(string.find(module.init_path, 'luvit/lib/luvit/fs.lua'), 'resolve_package resolves to wron init_path')
+  t:is_nil(module.package, 'there is not a package.lua for fs package so module.package should be nil')
+  t:equal(module.is_stdlib, true, 'fs is indeed a stdlib')
+  t:equal(module.is_builtin, false, 'fs is not a builtin')
+  t:finish()
+end)
+
+test('test resolve tape', nil, function(t)
+  local module = resolve.resolve_package('tape', __dirname)
+
+  t:not_nil(module, 'module is not found')
+  t:equal(module.init_path, path.normalize(path.join(__dirname, '../modules/tape/init.lua')), 'resolve_package resolves to wron init_path')
+  t:not_nil(module.package, 'there is package.lua for tape package so module.package should not be nil')
+  t:equal(module.is_stdlib, false, 'tape is not a stdlib')
+  t:equal(module.is_builtin, false, 'tape is not a builtin')
+  t:finish()
+end)
