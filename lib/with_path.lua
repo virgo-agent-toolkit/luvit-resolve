@@ -36,8 +36,13 @@ local function find_abs(absolute_path)
 
       if meta.main and fs.existsSync(path.join(absolute_path, meta.main)) then
         module.main = path.normalize(path.join(absolute_path, meta.main))
-      elseif fs.existsSync(path.join(absolute_path, 'init.lua')) then
-        module.main = path.normalize(path.join(absolute_path, 'init.lua'))
+      else
+        for _, main in ipairs({'init.lua', 'init.luvit'}) do
+          if fs.existsSync(path.join(absolute_path, main)) then
+            module.main = path.normalize(path.join(absolute_path, main))
+            break
+          end
+        end
       end
 
       -- return the module only when there is a valid entry point
