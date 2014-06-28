@@ -34,7 +34,7 @@ local function find_abs(absolute_path)
     if meta ~= nil then
       local module = Module:new()
 
-      if meta.main and fs.existsSync(meta.main) then
+      if meta.main and fs.existsSync(path.join(absolute_path, meta.main)) then
         module.main = path.normalize(path.join(absolute_path, meta.main))
       elseif fs.existsSync(path.join(absolute_path, 'init.lua')) then
         module.main = path.normalize(path.join(absolute_path, 'init.lua'))
