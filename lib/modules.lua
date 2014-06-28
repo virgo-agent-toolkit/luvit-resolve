@@ -12,7 +12,6 @@ return function(filepath, dirname)
       if module then
         return module
       end
-
     end
     dir = path.dirname(dir)
   until dir == '.'

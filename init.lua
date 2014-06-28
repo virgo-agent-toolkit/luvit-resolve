@@ -7,7 +7,7 @@ exports.resolve_package = resolve
 exports.resolve = function(filepath, dirname)
   local module = resolve(filepath, dirname)
   if module then
-    return module.init_path
+    return module.main
   end
   return nil
 end

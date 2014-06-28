@@ -12,8 +12,11 @@ local function find_abs(absolute_path)
   end
 
   local extension = path.extname(absolute_path)
-  if (extension == '.lua' or extension == '.luvit') and try_file(absolute_path) then
-    return Module:new(absolute_path, nil, false, false)
+  if (extension == '.lua' or extension == '.luvit') then
+    local module = try_file(absolute_path)
+    if module then
+      return module
+    end
   end
 
   -- not an actual lua file; assume it's an directory and look for package.lua
@@ -21,18 +24,24 @@ local function find_abs(absolute_path)
   local package_path = path.join(absolute_path, 'package.lua')
   if fs.existsSync(package_path) then
     local meta_loader = loadstring(fs.readFileSync(package_path))
-    local meta = meta_loader and meta_loader()
+    local success, meta
+    if meta_loader then
+      success, meta = pcall(meta_loader)
+      if not success then
+        meta = nil
+      end
+    end
     if meta ~= nil then
       local module = Module:new()
 
       if meta.main and fs.existsSync(meta.main) then
-        module.init_path = path.normalize(path.join(absolute_path, meta.main))
+        module.main = path.normalize(path.join(absolute_path, meta.main))
       elseif fs.existsSync(path.join(absolute_path, 'init.lua')) then
-        module.init_path = path.normalize(path.join(absolute_path, 'init.lua'))
+        module.main = path.normalize(path.join(absolute_path, 'init.lua'))
       end
 
       -- return the module only when there is a valid entry point
-      if module.init_path then
+      if module.main then
         module.package = meta
         return module
       end
@@ -42,9 +51,13 @@ local function find_abs(absolute_path)
   -- not a directory containing package.lua either; try adding .lua and .luvit
   -- extension
   return try_file(absolute_path .. '.lua') or try_file(path.join(absolute_path, 'init.lua'))
-  or try_file(absolute_path .. '.lua') or try_file(path.join(absolute_path, 'init.lua'))
+  or try_file(absolute_path .. '.luvit') or try_file(path.join(absolute_path, 'init.luvit'))
 end
 
+-- this function treats `filepath` as either an absolute or a relative path to
+-- the actual module. The path can be either a module directory, or an actual
+-- lua file. If it's an actual lua file, it can be either complete lua file
+-- location including the '.lua' extension or just the module name.
 return function(filepath, dirname)
   -- Luvit lets module paths always use / even on windows
   filepath = string.gsub(filepath, '/', path.sep)
